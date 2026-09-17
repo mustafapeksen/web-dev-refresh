@@ -4,6 +4,7 @@ import fs from "fs/promises";
 const port = 3000;
 
 const app = express();
+app.use(express.json());
 
 app.get("/", (req, res) => {
   res.json({
@@ -52,6 +53,61 @@ app.get("/users/:id", async (req, res) => {
     res.status(500).json({
       message: "Something went wrong",
     });
+  }
+});
+
+async function saveUsers(users) {
+  const newUsers = JSON.stringify(users, null, 2);
+  await fs.writeFile("./data/users.json", newUsers);
+}
+
+app.post("/users", async (req, res) => {
+  const userData = req.body;
+  if (!userData.name) {
+    res.status(400).json({
+      message: "Name required",
+    });
+    return;
+  }
+  if (!userData.age) {
+    res.status(400).json({
+      message: "Age required",
+    });
+    return;
+  }
+  if (!userData.email) {
+    res.status(400).json({
+      message: "E-mail required",
+    });
+    return;
+  }
+  if (userData.isActive === undefined) {
+    res.status(400).json({
+      message: "isActive required",
+    });
+    return;
+  }
+
+  try {
+    const users = await getUsers();
+    const usersId = users.map((user) => user.id);
+    const currentMaxId = usersId.length > 0 ? Math.max(...usersId) : 0;
+    const id = currentMaxId + 1;
+    const newUser = {
+      id,
+      name: userData.name,
+      age: userData.age,
+      email: userData.email,
+      isActive: userData.isActive,
+    };
+    users.push(newUser);
+    await saveUsers(users);
+    res.status(201).json(newUser);
+  } catch (error) {
+    res.status(500).json({
+      message: "Something went wrong",
+    });
+    return;
   }
 });
 
