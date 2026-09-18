@@ -33,5 +33,12 @@
     "age": 55,
     "email": "user5@example.com",
     "isActive": false
+  },
+  {
+    "id": 6,
+    "name": "Cemile",
+    "age": 27,
+    "email": "cemile@example.com",
+    "isActive": false
   }
 ]

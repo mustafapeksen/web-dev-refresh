@@ -111,6 +111,65 @@ app.post("/users", async (req, res) => {
   }
 });
 
+app.patch("/users/:id", async (req, res) => {
+  try {
+    const users = await getUsers();
+    const userUpdatedData = req.body;
+    const userId = parseInt(req.params.id);
+    const userIndex = users.findIndex((user) => user.id === userId);
+    if (userIndex === -1) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+    const currentUser = users[userIndex];
+
+    const updatedUser = {
+      id: currentUser.id,
+      name: userUpdatedData.name ?? currentUser.name,
+      age: userUpdatedData.age ?? currentUser.age,
+      email: userUpdatedData.email ?? currentUser.email,
+      isActive: userUpdatedData.isActive ?? currentUser.isActive,
+    };
+
+    users[userIndex] = updatedUser;
+    await saveUsers(users);
+    res.status(200).json({
+      message: "User is updated",
+      user: updatedUser,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Something went wrong",
+    });
+  }
+});
+
+app.delete("/users/:id", async (req, res) => {
+  try {
+    const users = await getUsers();
+    const id = parseInt(req.params.id);
+    const userIndex = users.findIndex((user) => user.id === id);
+    if (userIndex === -1) {
+      res.status(404).json({
+        message: "This user is not found",
+      });
+      return;
+    }
+
+    const [deletedUser] = users.splice(userIndex, 1);
+    await saveUsers(users);
+    res.status(200).json({
+      message: "User is deleted",
+      user: deletedUser,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Something went wrong",
+    });
+  }
+});
+
 app.listen(port, () => {
   console.log("Server started on port 3000");
 });
