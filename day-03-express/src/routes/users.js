@@ -1,8 +1,5 @@
 import express from "express";
-import {
-  getUsers,
-  saveUsers,
-} from "../repositories/usersRepository.js";
+import { getUsers, saveUsers } from "../repositories/usersRepository.js";
 
 const usersRouter = express.Router();
 
@@ -21,6 +18,32 @@ usersRouter.get("/", async (req, res) => {
         message: "400 Bad Request",
       });
     }
+  } catch (error) {
+    res.status(500).json({
+      message: "Something went wrong",
+    });
+  }
+});
+
+usersRouter.get("/stats", async (req, res) => {
+  try {
+    const users = await getUsers();
+
+    const activeUsers = users.filter((user) => user.isActive === true);
+    const inactiveUsers = users.filter((user) => user.isActive === false);
+
+    const totalAges = users.reduce(
+      (accumulator, user) => accumulator + user.age,
+      0,
+    );
+    const averageAge = users.length > 0 ? totalAges / users.length : 0;
+
+    res.status(200).json({
+      totalUsers: users.length,
+      activeUsers: activeUsers.length,
+      inactiveUsers: inactiveUsers.length,
+      averageAge: averageAge,
+    });
   } catch (error) {
     res.status(500).json({
       message: "Something went wrong",
