@@ -6,20 +6,93 @@ const usersRouter = express.Router();
 usersRouter.get("/", async (req, res) => {
   try {
     const users = await getUsers();
-    const isActive = req.query.active;
-    if (isActive === undefined) {
-      res.json(users);
-    } else if (isActive === "true") {
-      res.json(users.filter((user) => user.isActive === true));
-    } else if (isActive === "false") {
-      res.json(users.filter((user) => user.isActive === false));
-    } else {
-      res.status(400).json({
-        message: "400 Bad Request",
+
+    const { active, minAge, maxAge, sortBy, order, limit } = req.query;
+
+    if (active !== undefined && active !== "true" && active !== "false") {
+      return res.status(400).json({ message: "400 Bad Request" });
+    }
+
+    let parsedMinAge = null;
+    let parsedMaxAge = null;
+
+    if (minAge !== undefined) {
+      parsedMinAge = Number(minAge);
+      if (!Number.isInteger(parsedMinAge) || parsedMinAge < 0) {
+        return res.status(400).json({ message: "400 Bad Request" });
+      }
+    }
+
+    if (maxAge !== undefined) {
+      parsedMaxAge = Number(maxAge);
+      if (!Number.isInteger(parsedMaxAge) || parsedMaxAge < 0) {
+        return res.status(400).json({ message: "400 Bad Request" });
+      }
+    }
+
+    if (
+      parsedMinAge !== null &&
+      parsedMaxAge !== null &&
+      parsedMinAge > parsedMaxAge
+    ) {
+      return res.status(400).json({ message: "400 Bad Request" });
+    }
+
+    const allowedSortFields = ["id", "name", "age"];
+    if (sortBy !== undefined && !allowedSortFields.includes(sortBy)) {
+      return res.status(400).json({ message: "400 Bad Request" });
+    }
+
+    if (order !== undefined && order !== "asc" && order !== "desc") {
+      return res.status(400).json({ message: "400 Bad Request" });
+    }
+
+    let parsedLimit = null;
+
+    if (limit !== undefined) {
+      parsedLimit = Number(limit);
+      if (
+        !Number.isInteger(parsedLimit) ||
+        parsedLimit <= 0 ||
+        parsedLimit > 100
+      ) {
+        return res.status(400).json({ message: "400 Bad Request" });
+      }
+    }
+
+    let filteredUsers = [...users];
+
+    if (active !== undefined) {
+      const isTrue = active === "true";
+      filteredUsers = filteredUsers.filter((user) => user.isActive === isTrue);
+    }
+
+    if (parsedMinAge !== null) {
+      filteredUsers = filteredUsers.filter((user) => {
+        user.age >= parsedMinAge;
       });
     }
+
+    if (parsedMaxAge !== null) {
+      filteredUsers = filteredUsers.filter((user) => user.age <= parsedMaxAge);
+    }
+
+    if (sortBy) {
+      const currentOrder = order || "asc";
+      const sortOrder = currentOrder === "desc" ? -1 : 1;
+
+      filteredUsers.sort((a, b) => {
+        if (a[sortBy] < b[sortBy]) return -1 * sortOrder;
+        if (a[sortBy] > b[sortBy]) return 1 * sortOrder;
+        return 0;
+      });
+    }
+
+    filteredUsers = filteredUsers.slice(0, parsedLimit);
+
+    return res.status(200).json(filteredUsers);
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       message: "Something went wrong",
     });
   }
