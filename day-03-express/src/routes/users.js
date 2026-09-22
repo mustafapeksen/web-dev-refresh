@@ -9,22 +9,40 @@ usersRouter.get("/", async (req, res) => {
 
     const { active, minAge, maxAge, sortBy, order, limit } = req.query;
 
-    if (active !== undefined && active !== "true" && active !== "false") {
+    // active validation
+    if (
+      active !== undefined &&
+      active !== "true" &&
+      active !== "false"
+    ) {
       return res.status(400).json({ message: "400 Bad Request" });
     }
 
+    // minAge validation
     let parsedMinAge = null;
-    let parsedMaxAge = null;
 
     if (minAge !== undefined) {
+      if (minAge === "") {
+        return res.status(400).json({ message: "400 Bad Request" });
+      }
+
       parsedMinAge = Number(minAge);
+
       if (!Number.isInteger(parsedMinAge) || parsedMinAge < 0) {
         return res.status(400).json({ message: "400 Bad Request" });
       }
     }
 
+    // maxAge validation
+    let parsedMaxAge = null;
+
     if (maxAge !== undefined) {
+      if (maxAge === "") {
+        return res.status(400).json({ message: "400 Bad Request" });
+      }
+
       parsedMaxAge = Number(maxAge);
+
       if (!Number.isInteger(parsedMaxAge) || parsedMaxAge < 0) {
         return res.status(400).json({ message: "400 Bad Request" });
       }
@@ -38,47 +56,68 @@ usersRouter.get("/", async (req, res) => {
       return res.status(400).json({ message: "400 Bad Request" });
     }
 
+    // sorting validation
     const allowedSortFields = ["id", "name", "age"];
-    if (sortBy !== undefined && !allowedSortFields.includes(sortBy)) {
+
+    if (
+      sortBy !== undefined &&
+      !allowedSortFields.includes(sortBy)
+    ) {
       return res.status(400).json({ message: "400 Bad Request" });
     }
 
-    if (order !== undefined && order !== "asc" && order !== "desc") {
+    if (
+      order !== undefined &&
+      order !== "asc" &&
+      order !== "desc"
+    ) {
       return res.status(400).json({ message: "400 Bad Request" });
     }
 
+    // limit validation
     let parsedLimit = null;
 
     if (limit !== undefined) {
+      if (limit === "") {
+        return res.status(400).json({ message: "400 Bad Request" });
+      }
+
       parsedLimit = Number(limit);
+
       if (
         !Number.isInteger(parsedLimit) ||
-        parsedLimit <= 0 ||
+        parsedLimit < 1 ||
         parsedLimit > 100
       ) {
         return res.status(400).json({ message: "400 Bad Request" });
       }
     }
 
+    // processing
     let filteredUsers = [...users];
 
     if (active !== undefined) {
-      const isTrue = active === "true";
-      filteredUsers = filteredUsers.filter((user) => user.isActive === isTrue);
+      const activeValue = active === "true";
+
+      filteredUsers = filteredUsers.filter(
+        (user) => user.isActive === activeValue
+      );
     }
 
     if (parsedMinAge !== null) {
-      filteredUsers = filteredUsers.filter((user) => {
-        user.age >= parsedMinAge;
-      });
+      filteredUsers = filteredUsers.filter(
+        (user) => user.age >= parsedMinAge
+      );
     }
 
     if (parsedMaxAge !== null) {
-      filteredUsers = filteredUsers.filter((user) => user.age <= parsedMaxAge);
+      filteredUsers = filteredUsers.filter(
+        (user) => user.age <= parsedMaxAge
+      );
     }
 
-    if (sortBy) {
-      const currentOrder = order || "asc";
+    if (sortBy !== undefined) {
+      const currentOrder = order ?? "asc";
       const sortOrder = currentOrder === "desc" ? -1 : 1;
 
       filteredUsers.sort((a, b) => {
@@ -88,10 +127,15 @@ usersRouter.get("/", async (req, res) => {
       });
     }
 
-    filteredUsers = filteredUsers.slice(0, parsedLimit);
+    // limit yalnızca gerçekten verilmişse uygulanır
+    if (parsedLimit !== null) {
+      filteredUsers = filteredUsers.slice(0, parsedLimit);
+    }
 
     return res.status(200).json(filteredUsers);
   } catch (error) {
+    console.error(error);
+
     return res.status(500).json({
       message: "Something went wrong",
     });
