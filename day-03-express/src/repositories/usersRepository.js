@@ -1,6 +1,9 @@
 import fs from "fs/promises";
 
-const usersFile = new URL("../data/users.json", import.meta.url);
+const usersFile =
+  process.env.NODE_ENV === "test"
+    ? new URL("../data/users.test.json", import.meta.url)
+    : new URL("../data/users.json", import.meta.url);
 
 export async function getUsers() {
   const users = await fs.readFile(usersFile, "utf-8");
