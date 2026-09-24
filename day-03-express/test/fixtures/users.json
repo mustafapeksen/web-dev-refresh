@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1,
+    "name": "Mustafa Pekşen",
+    "age": 28,
+    "email": "gs33peksen@gmail.com",
+    "isActive": true
+  },
+  {
+    "id": 2,
+    "name": "Abdullah Dalyan Zafer Pekşen",
+    "age": 19,
+    "email": "abdullahpeksen33@gmail.com",
+    "isActive": true
+  },
+  {
+    "id": 3,
+    "name": "Mehmet Burak Pekşen",
+    "age": 26,
+    "email": "mehmetpeksen3377@gmail.com",
+    "isActive": false
+  },
+  {
+    "id": 4,
+    "name": "Ali Pekşen",
+    "age": 55,
+    "email": "cinali1971@hotmail.com",
+    "isActive": true
+  },
+  {
+    "id": 5,
+    "name": "Şerife Pekşen",
+    "age": 55,
+    "email": "serifepeksen3370@gmail.com",
+    "isActive": false
+  },
+  {
+    "id": 6,
+    "name": "Cemile Arslan",
+    "age": 27,
+    "email": "cemile@example.com",
+    "isActive": false
+  }
+]

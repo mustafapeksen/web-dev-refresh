@@ -1,8 +1,21 @@
-import test from "node:test";
+import test, { beforeEach, after } from "node:test";
 import assert from "node:assert/strict";
 import request from "supertest";
+import { copyFile, rm } from "node:fs/promises";
 
 import app from "../src/app.js";
+
+const usersTestFile = new URL("../src/data/users.test.json", import.meta.url);
+
+const fixtureFile = new URL("./fixtures/users.json", import.meta.url);
+
+beforeEach(async () => {
+  await copyFile(fixtureFile, usersTestFile);
+});
+
+after(async () => {
+  await rm(usersTestFile, { force: true });
+});
 
 test("GET /users returns users array", async () => {
   const response = await request(app).get("/users");
@@ -130,14 +143,14 @@ test("GET /users/stats return users stats", async () => {
   assert.equal(isObject(response.body), true);
 
   const responseName = Object.keys(response.body).sort();
-  const expectedNamee = [
+  const expectedNames = [
     "activeUsers",
     "averageAge",
     "inactiveUsers",
     "totalUsers",
   ];
   assert.equal(
-    expectedNamee.every((key) => responseName.includes(key)),
+    expectedNames.every((key) => responseName.includes(key)),
     true,
   );
 
@@ -162,4 +175,41 @@ test("GET /users/:id undefined id", async () => {
   const response = await request(app).get("/users/" + newID);
 
   assert.equal(response.status, 404);
+});
+
+test("POST /users creates a new user", async () => {
+  const users = await request(app).get("/users");
+  const usersCount = users.body.length;
+  const newUser = {
+    name: "Kadriye",
+    age: 22,
+    email: "kadriye@example.com",
+    isActive: true,
+  };
+  const postRequest = await request(app).post("/users").send(newUser);
+  assert.equal(postRequest.status, 201);
+
+  assert.equal(postRequest.body.name, newUser.name);
+  assert.equal(postRequest.body.age, newUser.age);
+  assert.equal(postRequest.body.email, newUser.email);
+  assert.equal(postRequest.body.isActive, newUser.isActive);
+
+  const newUsers = (await request(app).get("/users")).body;
+
+  assert.ok(postRequest.body.id, "User have an id!");
+  const isUserExist = newUsers.some((user) => user.id === postRequest.body.id);
+  assert.equal(isUserExist, true);
+
+  const newUsersCount = newUsers.length;
+  assert.equal(newUsersCount, usersCount + 1);
+});
+
+test("Isolation control test", async () => {
+  const response = await request(app).get("/users");
+  const users = response.body;
+
+  const userEmail = "kadriye@example.com";
+
+  const isUserExist = users.some((user) => user.email === userEmail);
+  assert.equal(isUserExist, false);
 });
