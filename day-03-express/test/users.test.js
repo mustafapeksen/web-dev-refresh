@@ -213,3 +213,60 @@ test("Isolation control test", async () => {
   const isUserExist = users.some((user) => user.email === userEmail);
   assert.equal(isUserExist, false);
 });
+
+test("PATCH /users/:id age regression tests", async () => {
+  const userURL = "/users/6";
+  const users = await request(app).get("/users");
+  const usersLength = users.body.length;
+
+  const oldUserInfo = await request(app).get(userURL);
+  const age = 18;
+  const userPatchData = { age };
+  const patchResponse = await request(app).patch(userURL).send(userPatchData);
+  assert.equal(patchResponse.status, 200);
+  assert.equal(patchResponse.body.user.age, age);
+  assert.equal(oldUserInfo.body.name, patchResponse.body.user.name);
+  assert.equal(oldUserInfo.body.email, patchResponse.body.user.email);
+  assert.equal(oldUserInfo.body.isActive, patchResponse.body.user.isActive);
+
+  const newUserInfo = await request(app).get(userURL);
+  assert.equal(newUserInfo.body.age, age);
+
+  const newUsers = await request(app).get("/users");
+  const newUsersLength = newUsers.body.length;
+  assert.equal(usersLength, newUsersLength);
+});
+
+test("PATCH isActive control test", async () => {
+  const userURL = "/users/4";
+
+  const oldUserInfo = await request(app).get(userURL);
+
+  const userPatchData = { isActive: false };
+  const patchResponse = await request(app).patch(userURL).send(userPatchData);
+
+  assert.equal(patchResponse.status, 200);
+  assert.equal(patchResponse.body.user.isActive, false);
+  assert.equal(oldUserInfo.body.name, patchResponse.body.user.name);
+
+  const updatedUser = await request(app).get(userURL);
+  assert.equal(updatedUser.body.isActive, false);
+});
+
+test("PATCH /users/id 404 error control", async () => {
+  const userPatchData = { name: "Tarık" };
+  const users = await request(app).get("/users");
+  const nonexistentId  = Math.max(...users.body.map((user) => user.id)) + 1;
+  const response = await request(app)
+    .patch(`/users/${nonexistentId }`)
+    .send(userPatchData);
+
+  assert.equal(response.status, 404);
+});
+
+test("PATCH isolation control test", async () => {
+  const user = await request(app).get("/users/6");
+  const age = 27;
+
+  assert.equal(user.body.age, age);
+});
