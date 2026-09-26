@@ -256,9 +256,9 @@ test("PATCH isActive control test", async () => {
 test("PATCH /users/id 404 error control", async () => {
   const userPatchData = { name: "Tarık" };
   const users = await request(app).get("/users");
-  const nonexistentId  = Math.max(...users.body.map((user) => user.id)) + 1;
+  const nonexistentId = Math.max(...users.body.map((user) => user.id)) + 1;
   const response = await request(app)
-    .patch(`/users/${nonexistentId }`)
+    .patch(`/users/${nonexistentId}`)
     .send(userPatchData);
 
   assert.equal(response.status, 404);
@@ -269,4 +269,37 @@ test("PATCH isolation control test", async () => {
   const age = 27;
 
   assert.equal(user.body.age, age);
+});
+
+test("DELETE regression tests", async () => {
+  const userId = 6;
+  const userURL = `/users/${userId}`;
+  const oldUsers = await request(app).get("/users");
+  const user = await request(app).get(userURL);
+  const deleteResponse = await request(app).delete(userURL);
+  const newUsers = await request(app).get("/users");
+
+  assert.equal(deleteResponse.status, 200);
+  assert.equal(oldUsers.body.length - 1, newUsers.body.length);
+  assert.equal(deleteResponse.body.user.id, user.body.id);
+  assert.equal(
+    newUsers.body.some((user) => user.id === userId),
+    false,
+  );
+});
+
+test("DELETE 404 error control", async () => {
+  const users = await request(app).get("/users");
+  const nonexistentId = Math.max(...users.body.map((user) => user.id)) + 1;
+
+  const response = await request(app).delete(`/users/${nonexistentId}`);
+
+  assert.equal(response.status, 404);
+});
+
+test("DELETE isolation control test", async () => {
+  const user = await request(app).get("/users/6");
+  const expectedId = 6;
+
+  assert.equal(user.body.id, expectedId);
 });
