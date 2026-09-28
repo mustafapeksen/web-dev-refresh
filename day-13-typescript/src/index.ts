@@ -134,7 +134,65 @@ function getPublicUsersResponse(users: User[]): ApiResponse {
 const response = getPublicUsersResponse(users);
 
 if (response.success) {
-  console.log(response.data);
+ // console.log(response.data);
 } else {
-  console.log(response.error);
+ // console.log(response.error);
+}
+
+let requestBody: unknown = { name: "Mustafa", age: 28 };
+type UpdateAgeInput = {
+  age: number;
+};
+
+function isUpdateAgeInput(input: unknown): input is UpdateAgeInput {
+  return (
+    input !== null &&
+    typeof input === "object" &&
+    "age" in input &&
+    typeof input.age === "number" &&
+    Number.isFinite(input.age) &&
+    Number.isInteger(input.age) &&
+    input.age > 0 &&
+    input.age <= 120
+  );
+}
+if (!isUpdateAgeInput(requestBody)) {
+  //console.log("Invalid request body");
+} else {
+  //console.log(requestBody.age);
+}
+const allowedKeys: string[] = ["name", "age", "email", "phone", "isActive"];
+
+function isUpdateUserInput(input: unknown): input is UpdateUserInput {
+  return (
+    input !== null &&
+    typeof input === "object" &&
+    Object.keys(input).length > 0 &&
+    Object.keys(input).every((key) => allowedKeys.includes(key)) &&
+    (!("name" in input) || typeof input.name === "string") &&
+    (!("email" in input) || typeof input.email === "string") &&
+    (!("phone" in input) || typeof input.phone === "string") &&
+    (!("isActive" in input) || typeof input.isActive === "boolean") &&
+    (!("age" in input) ||
+      (typeof input.age === "number" &&
+        Number.isInteger(input.age) &&
+        input.age >= 1 &&
+        input.age <= 120))
+  );
+}
+
+let id: number;
+id = 2
+requestBody = { age: 25, isActive: false }
+
+if (!isUpdateUserInput(requestBody)) {
+  console.log("Invalid request body");
+} else {
+  const updatedUser = updateUser(users, id, requestBody);
+  if (typeof updatedUser === "undefined") {
+    console.log("User not found");
+  } else {
+    console.log(updatedUser);
+    console.log(findUserById(users, id));
+  }
 }
