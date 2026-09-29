@@ -10,11 +10,7 @@ usersRouter.get("/", async (req, res) => {
     const { active, minAge, maxAge, sortBy, order, limit } = req.query;
 
     // active validation
-    if (
-      active !== undefined &&
-      active !== "true" &&
-      active !== "false"
-    ) {
+    if (active !== undefined && active !== "true" && active !== "false") {
       return res.status(400).json({ message: "400 Bad Request" });
     }
 
@@ -59,18 +55,11 @@ usersRouter.get("/", async (req, res) => {
     // sorting validation
     const allowedSortFields = ["id", "name", "age"];
 
-    if (
-      sortBy !== undefined &&
-      !allowedSortFields.includes(sortBy)
-    ) {
+    if (sortBy !== undefined && !allowedSortFields.includes(sortBy)) {
       return res.status(400).json({ message: "400 Bad Request" });
     }
 
-    if (
-      order !== undefined &&
-      order !== "asc" &&
-      order !== "desc"
-    ) {
+    if (order !== undefined && order !== "asc" && order !== "desc") {
       return res.status(400).json({ message: "400 Bad Request" });
     }
 
@@ -100,20 +89,16 @@ usersRouter.get("/", async (req, res) => {
       const activeValue = active === "true";
 
       filteredUsers = filteredUsers.filter(
-        (user) => user.isActive === activeValue
+        (user) => user.isActive === activeValue,
       );
     }
 
     if (parsedMinAge !== null) {
-      filteredUsers = filteredUsers.filter(
-        (user) => user.age >= parsedMinAge
-      );
+      filteredUsers = filteredUsers.filter((user) => user.age >= parsedMinAge);
     }
 
     if (parsedMaxAge !== null) {
-      filteredUsers = filteredUsers.filter(
-        (user) => user.age <= parsedMaxAge
-      );
+      filteredUsers = filteredUsers.filter((user) => user.age <= parsedMaxAge);
     }
 
     if (sortBy !== undefined) {
@@ -170,7 +155,10 @@ usersRouter.get("/stats", async (req, res) => {
 
 usersRouter.get("/:id", async (req, res) => {
   try {
-    const userId = parseInt(req.params.id);
+    const userId = Number(req.params.id);
+    if (!Number.isInteger(userId))
+      return res.status(400).json({ message: "Invalid request body" });
+
     const users = await getUsers();
     const user = users.find((user) => user.id === userId);
     if (user !== undefined) {
@@ -185,32 +173,113 @@ usersRouter.get("/:id", async (req, res) => {
   }
 });
 
+const allowedCreateKeys = ["name", "age", "email", "isActive"];
+
+function validateCreateUserInput(input) {
+  if (input === null) {
+    return {
+      valid: false,
+      message: "Please do not send empty information!",
+    };
+  }
+
+  if (typeof input !== "object") {
+    return {
+      valid: false,
+      message: "Input must be an object!",
+    };
+  }
+
+  if (Object.keys(input).length <= 0) {
+    return { valid: false, message: "Please use object keys!" };
+  }
+
+  if (!Object.keys(input).every((key) => allowedCreateKeys.includes(key))) {
+    return { valid: false, message: "Please use correct object keys!" };
+  }
+
+  if (!("name" in input)) {
+    return {
+      valid: false,
+      message: "Name is required",
+    };
+  }
+
+  if (typeof input.name !== "string") {
+    return {
+      valid: false,
+      message: "Name must be a string",
+    };
+  }
+
+  if (input.name.trim().length === 0) {
+    return {
+      valid: false,
+      message: "Name cannot be empty",
+    };
+  }
+
+  if (!("email" in input)) {
+    return {
+      valid: false,
+      message: "Email is required!",
+    };
+  }
+
+  if (typeof input.email !== "string") {
+    return {
+      valid: false,
+      message: "Email must be a string",
+    };
+  }
+
+  if (input.email.trim().length === 0) {
+    return {
+      valid: false,
+      message: "Email cannot be empty",
+    };
+  }
+
+  if (!("isActive" in input)) {
+    return {
+      valid: false,
+      message: "isActive is required!",
+    };
+  }
+
+  if (typeof input.isActive !== "boolean") {
+    return { valid: false, message: "isActive must be boolean!" };
+  }
+
+  if (!("age" in input)) {
+    return { valid: false, message: "Age is required!" };
+  }
+
+  if (typeof input.age !== "number") {
+    return { valid: false, message: "Age must be a number!" };
+  }
+
+  if (!Number.isInteger(input.age)) {
+    return { valid: false, message: "Age must be an integer" };
+  }
+
+  if (input.age < 1 || input.age > 120) {
+    return {
+      valid: false,
+      message: "Age must be between 1 and 120",
+    };
+  }
+
+  return {
+    valid: true,
+  };
+}
+
 usersRouter.post("/", async (req, res) => {
   const userData = req.body;
-  if (!userData.name) {
-    res.status(400).json({
-      message: "Name required",
-    });
-    return;
-  }
-  if (!userData.age) {
-    res.status(400).json({
-      message: "Age required",
-    });
-    return;
-  }
-  if (!userData.email) {
-    res.status(400).json({
-      message: "E-mail required",
-    });
-    return;
-  }
-  if (userData.isActive === undefined) {
-    res.status(400).json({
-      message: "isActive required",
-    });
-    return;
-  }
+  const validation = validateCreateUserInput(userData);
+  if (!validation.valid)
+    return res.status(400).json({ message: validation.message });
 
   try {
     const users = await getUsers();
@@ -235,11 +304,36 @@ usersRouter.post("/", async (req, res) => {
   }
 });
 
+const allowedKeys = ["name", "age", "email", "isActive"];
+
+function isUpdateUserInput(input) {
+  return (
+    input !== null &&
+    typeof input === "object" &&
+    Object.keys(input).length > 0 &&
+    Object.keys(input).every((key) => allowedKeys.includes(key)) &&
+    (!("name" in input) || typeof input.name === "string") &&
+    (!("email" in input) || typeof input.email === "string") &&
+    (!("isActive" in input) || typeof input.isActive === "boolean") &&
+    (!("age" in input) ||
+      (typeof input.age === "number" &&
+        Number.isInteger(input.age) &&
+        input.age >= 1 &&
+        input.age <= 120))
+  );
+}
+
 usersRouter.patch("/:id", async (req, res) => {
   try {
-    const users = await getUsers();
     const userUpdatedData = req.body;
-    const userId = parseInt(req.params.id);
+    if (!isUpdateUserInput(userUpdatedData))
+      return res.status(400).json({ message: "Invalid request body" });
+
+    const users = await getUsers();
+    const userId = Number(req.params.id);
+    if (!Number.isInteger(userId))
+      return res.status(400).json({ message: "Invalid request body" });
+
     const userIndex = users.findIndex((user) => user.id === userId);
     if (userIndex === -1) {
       return res.status(404).json({
@@ -272,7 +366,10 @@ usersRouter.patch("/:id", async (req, res) => {
 usersRouter.delete("/:id", async (req, res) => {
   try {
     const users = await getUsers();
-    const id = parseInt(req.params.id);
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id))
+      return res.status(400).json({ message: "Invalid request body" });
+
     const userIndex = users.findIndex((user) => user.id === id);
     if (userIndex === -1) {
       res.status(404).json({

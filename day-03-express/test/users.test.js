@@ -157,6 +157,12 @@ test("GET /users/stats return users stats", async () => {
   assert.equal(response.body.totalUsers, userResponse.body.length);
 });
 
+test("GET /users/:id id 400 error control test", async () => {
+  const response = await request(app).get("/users/2abc");
+
+  assert.equal(response.status, 400);
+});
+
 test("GET /users/:id return correct user", async () => {
   const userResponse = await request(app).get("/users");
   const idResponse = await request(app).get(
@@ -175,6 +181,176 @@ test("GET /users/:id undefined id", async () => {
   const response = await request(app).get("/users/" + newID);
 
   assert.equal(response.status, 404);
+});
+
+test("POST /users name key 400 error control test", async () => {
+  const getResponse = await request(app).get("/users");
+  const newUser = { name: 123, age: 25, email: "a@b.com", isActive: true };
+  const postRequest = await request(app).post("/users").send(newUser);
+  const getNewResponse = await request(app).get("/users");
+
+  assert.equal(postRequest.status, 400);
+  assert.deepEqual(getResponse.body, getNewResponse.body);
+});
+
+test("POST /users age key 400 error control test", async () => {
+  const getResponse = await request(app).get("/users");
+  const newUser = { name: "Ali", age: "25", email: "a@b.com", isActive: true };
+  const postRequest = await request(app).post("/users").send(newUser);
+  const getNewResponse = await request(app).get("/users");
+
+  assert.equal(postRequest.status, 400);
+  assert.deepEqual(getResponse.body, getNewResponse.body);
+});
+
+test("POST /users email key 400 error control test", async () => {
+  const getResponse = await request(app).get("/users");
+  const newUser = { name: "Ali", age: 25, email: true, isActive: true };
+  const postRequest = await request(app).post("/users").send(newUser);
+  const getNewResponse = await request(app).get("/users");
+
+  assert.equal(postRequest.status, 400);
+  assert.deepEqual(getResponse.body, getNewResponse.body);
+});
+
+test("POST /users isActive key 400 error control test", async () => {
+  const getResponse = await request(app).get("/users");
+  const newUser = { name: "Ali", age: 25, email: "a@b.com", isActive: "true" };
+  const postRequest = await request(app).post("/users").send(newUser);
+  const getNewResponse = await request(app).get("/users");
+
+  assert.equal(postRequest.status, 400);
+  assert.deepEqual(getResponse.body, getNewResponse.body);
+});
+
+test("POST /users not allowed key 400 error control test", async () => {
+  const getResponse = await request(app).get("/users");
+  const newUser = {
+    name: "Ali",
+    age: 25,
+    email: "a@b.com",
+    isActive: true,
+    role: "admin",
+  };
+  const postRequest = await request(app).post("/users").send(newUser);
+  const getNewResponse = await request(app).get("/users");
+
+  assert.equal(postRequest.status, 400);
+  assert.deepEqual(getResponse.body, getNewResponse.body);
+});
+
+test("POST /users empty object 400 error control test", async () => {
+  const getResponse = await request(app).get("/users");
+  const newUser = {};
+  const postRequest = await request(app).post("/users").send(newUser);
+  const getNewResponse = await request(app).get("/users");
+
+  assert.equal(postRequest.status, 400);
+  assert.deepEqual(getResponse.body, getNewResponse.body);
+});
+
+test("POST /users missing required fields returns 400", async () => {
+  const testCases = [
+    {
+      body: {
+        age: 25,
+        email: "a@b.com",
+        isActive: true,
+      },
+      message: "Name is required",
+    },
+    {
+      body: {
+        name: "Ali",
+        email: "a@b.com",
+        isActive: true,
+      },
+      message: "Age is required!",
+    },
+    {
+      body: {
+        name: "Ali",
+        age: 25,
+        isActive: true,
+      },
+      message: "Email is required!",
+    },
+    {
+      body: {
+        name: "Ali",
+        age: 25,
+        email: "a@b.com",
+      },
+      message: "isActive is required!",
+    },
+  ];
+
+  const oldUsers = await request(app).get("/users");
+
+  for (const testCase of testCases) {
+    const response = await request(app).post("/users").send(testCase.body);
+
+    assert.equal(response.status, 400);
+    assert.equal(response.body.message, testCase.message);
+  }
+
+  const newUsers = await request(app).get("/users");
+
+  assert.deepEqual(newUsers.body, oldUsers.body);
+});
+
+test("POST /users empty or whitespace fields returns 400", async () => {
+  const testCases = [
+    {
+      body: {
+        name: "",
+        age: 25,
+        email: "a@b.com",
+        isActive: true,
+      },
+      message: "Name cannot be empty",
+    },
+    {
+      body: {
+        name: "   ",
+        age: 25,
+        email: "a@b.com",
+        isActive: true,
+      },
+      message: "Name cannot be empty",
+    },
+    {
+      body: {
+        name: "Ali",
+        age: 25,
+        email: "",
+        isActive: true,
+      },
+      message: "Email cannot be empty",
+    },
+    {
+      body: {
+        name: "Ali",
+        age: 25,
+        email: "   ",
+        isActive: true,
+      },
+      message: "Email cannot be empty",
+    },
+  ];
+
+  const oldUsers = await request(app).get("/users");
+
+  for (const testCase of testCases) {
+    const response = await request(app).post("/users").send(testCase.body);
+
+    assert.equal(response.status, 400);
+    assert.equal(response.body.message, testCase.message);
+  }
+
+  const newUsers = await request(app).get("/users");
+
+  assert.deepEqual(newUsers.body, oldUsers.body);
 });
 
 test("POST /users creates a new user", async () => {
@@ -212,6 +388,54 @@ test("Isolation control test", async () => {
 
   const isUserExist = users.some((user) => user.email === userEmail);
   assert.equal(isUserExist, false);
+});
+
+test("PATCH 400 error control tests", async () => {
+  const userURL = "/users/2";
+  const oldUserInfo = await request(app).get(userURL);
+  const patchResponse = await request(app).patch(userURL).send({ age: "25" });
+  const userInfo = await request(app).get(userURL);
+
+  assert.equal(patchResponse.status, 400);
+  assert.deepEqual(userInfo.body, oldUserInfo.body);
+  assert.equal(oldUserInfo.body.age, userInfo.body.age);
+});
+
+test("PATCH 400 error role key control tests", async () => {
+  const userURL = "/users/2";
+  const oldUserInfo = await request(app).get(userURL);
+  const patchResponse = await request(app)
+    .patch(userURL)
+    .send({ age: 25, role: "admin" });
+  const userInfo = await request(app).get(userURL);
+
+  assert.equal(patchResponse.status, 400);
+  assert.deepEqual(userInfo.body, oldUserInfo.body);
+  assert.equal(oldUserInfo.body.age, userInfo.body.age);
+  assert.equal(oldUserInfo.body.role, userInfo.body.role);
+});
+
+test("PATCH 400 error empty object control tests", async () => {
+  const userURL = "/users/2";
+  const oldUserInfo = await request(app).get(userURL);
+  const patchResponse = await request(app).patch(userURL).send({});
+  const userInfo = await request(app).get(userURL);
+
+  assert.equal(patchResponse.status, 400);
+  assert.deepEqual(userInfo.body, oldUserInfo.body);
+  assert.equal(oldUserInfo.body.age, userInfo.body.age);
+  assert.equal(oldUserInfo.body.role, userInfo.body.role);
+});
+
+test("PATCH id 400 error control test", async () => {
+  const targetUser = "/users/2";
+  const userURL = "/users/2abc";
+  const oldUserInfo = await request(app).get(targetUser);
+  const patchResponse = await request(app).patch(userURL).send({ age: 25 });
+  const userInfo = await request(app).get(targetUser);
+
+  assert.equal(patchResponse.status, 400);
+  assert.deepEqual(userInfo.body, oldUserInfo.body);
 });
 
 test("PATCH /users/:id age regression tests", async () => {
@@ -269,6 +493,18 @@ test("PATCH isolation control test", async () => {
   const age = 27;
 
   assert.equal(user.body.age, age);
+});
+
+test("DELETE /users/:id id 400 error control tests", async () => {
+  const userId = "2abc";
+  const userURL = `/users/${userId}`;
+  const oldUsers = await request(app).get("/users");
+  const deleteResponse = await request(app).delete(userURL);
+  const newUsers = await request(app).get("/users");
+
+  assert.equal(deleteResponse.status, 400);
+  assert.equal(oldUsers.body.length, newUsers.body.length);
+  assert.deepEqual(newUsers.body, oldUsers.body);
 });
 
 test("DELETE regression tests", async () => {
