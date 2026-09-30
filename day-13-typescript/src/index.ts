@@ -1,14 +1,6 @@
-type UserRole = "admin" | "user";
-interface User {
-  id: number;
-  name: string;
-  age: number;
-  email: string;
-  phone?: string;
-  isActive: boolean;
-  role: UserRole;
-}
+import type { User, UserRole, CreateUserRequest } from "./types/user.types.js";
 
+export type { User, UserRole, CreateUserRequest } from "./types/user.types.js";
 type CreateUserInput = Omit<User, "id" | "isActive" | "role">;
 type UpdateUserInput = Partial<Omit<User, "id" | "role">>;
 type PublicUser = Pick<User, "id" | "name" | "isActive">;
@@ -22,6 +14,19 @@ type ErrorResponse = {
   error: string;
 };
 type ApiResponse = SuccessResponse | ErrorResponse;
+
+type ValidationSuccess = {
+  valid: true;
+  data: CreateUserRequest;
+};
+
+type ValidationFailure = {
+  valid: false;
+  message: string;
+};
+
+type ValidationResult = ValidationSuccess | ValidationFailure;
+
 
 const firstUser: User = {
   id: 1,
@@ -71,6 +76,62 @@ function createUser(users: User[], input: CreateUserInput): User {
   users.push(newUser);
 
   return newUser;
+}
+
+export function validateCreateUserRequest(input: unknown): ValidationResult {
+  if (input === null || typeof input !== "object") {
+    return { valid: false, message: "Request body must be an object" };
+  }
+
+  const keys = Object.keys(input);
+
+  if (keys.length === 0) {
+    return { valid: false, message: "Request body cannot be empty" };
+  }
+
+  if (!keys.every((key) => allowedKeys.includes(key))) {
+    return { valid: false, message: "Request body contains invalid keys" };
+  }
+
+  if (
+    !("name" in input) ||
+    typeof input.name !== "string" ||
+    input.name.trim().length === 0
+  ) {
+    return { valid: false, message: "Invalid or missing 'name'" };
+  }
+
+  if (
+    !("email" in input) ||
+    typeof input.email !== "string" ||
+    input.email.trim().length === 0
+  ) {
+    return { valid: false, message: "Invalid or missing 'email'" };
+  }
+
+  if (!("isActive" in input) || typeof input.isActive !== "boolean") {
+    return { valid: false, message: "Invalid or missing 'isActive'" };
+  }
+
+  if (
+    !("age" in input) ||
+    typeof input.age !== "number" ||
+    !Number.isInteger(input.age) ||
+    input.age <= 0 ||
+    input.age > 120
+  ) {
+    return { valid: false, message: "Invalid or missing 'age'" };
+  }
+
+  return {
+    valid: true,
+    data: {
+      name: input.name,
+      email: input.email,
+      isActive: input.isActive,
+      age: input.age,
+    },
+  };
 }
 
 function updateUserAge(user: User, age: number): User {
@@ -134,9 +195,9 @@ function getPublicUsersResponse(users: User[]): ApiResponse {
 const response = getPublicUsersResponse(users);
 
 if (response.success) {
- // console.log(response.data);
+  // console.log(response.data);
 } else {
- // console.log(response.error);
+  // console.log(response.error);
 }
 
 let requestBody: unknown = { name: "Mustafa", age: 28 };
@@ -182,8 +243,8 @@ function isUpdateUserInput(input: unknown): input is UpdateUserInput {
 }
 
 let id: number;
-id = 2
-requestBody = { age: 25, isActive: false }
+id = 2;
+requestBody = { age: 25, isActive: false };
 
 if (!isUpdateUserInput(requestBody)) {
   console.log("Invalid request body");
