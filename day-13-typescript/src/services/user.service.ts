@@ -1,4 +1,4 @@
-import { saveUser } from "../repositories/user.repository.js";
+import { findUserById, saveUser } from "../repositories/user.repository.js";
 
 import type {
   CreateUserRequest,
@@ -6,9 +6,7 @@ import type {
   UserToSave,
 } from "../types/user.types.js";
 
-export async function createUser(
-  input: CreateUserRequest,
-): Promise<User> {
+export async function createUser(input: CreateUserRequest): Promise<User> {
   const newUser: UserToSave = {
     name: input.name,
     age: input.age,
@@ -18,4 +16,8 @@ export async function createUser(
   };
 
   return saveUser(newUser);
+}
+
+export async function getUserById(id: number): Promise<User | undefined> {
+  return findUserById(id);
 }

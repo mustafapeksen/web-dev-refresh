@@ -10,20 +10,15 @@ type ValidationFailure = {
   message: string;
 };
 
-type ValidationResult =
-  | ValidationSuccess
-  | ValidationFailure;
+type ValidationResult = ValidationSuccess | ValidationFailure;
 
-const allowedKeys = [
-  "name",
-  "age",
-  "email",
-  "isActive",
-];
+type IdValidationSuccess = { valid: true; data: number };
 
-export function validateCreateUserRequest(
-  input: unknown,
-): ValidationResult {
+type UserIdValidationResult = IdValidationSuccess | ValidationFailure;
+
+const allowedKeys = ["name", "age", "email", "isActive"];
+
+export function validateCreateUserRequest(input: unknown): ValidationResult {
   if (input === null || typeof input !== "object") {
     return {
       valid: false,
@@ -69,10 +64,7 @@ export function validateCreateUserRequest(
     };
   }
 
-  if (
-    !("isActive" in input) ||
-    typeof input.isActive !== "boolean"
-  ) {
+  if (!("isActive" in input) || typeof input.isActive !== "boolean") {
     return {
       valid: false,
       message: "Invalid or missing 'isActive'",
@@ -101,4 +93,16 @@ export function validateCreateUserRequest(
       age: input.age,
     },
   };
+}
+
+export function validateUserId(id: string): UserIdValidationResult {
+  const userId = Number(id);
+
+  if (!Number.isInteger(userId)) {
+    return { valid: false, message: "Please use correct number type!" };
+  }
+  if (userId < 1) {
+    return { valid: false, message: "Please use valid id!" };
+  }
+  return { valid: true, data: userId };
 }

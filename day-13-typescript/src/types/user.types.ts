@@ -27,6 +27,9 @@ export type ApiErrorResponse = {
   message: string;
 };
 
-export type CreateUserResponse =
-  | CreateUserSuccessResponse
-  | ApiErrorResponse;
+export type CreateUserResponse = CreateUserSuccessResponse | ApiErrorResponse;
+
+export type GetUserResponse = SuccessGetUserResponse | ApiErrorResponse;
+
+export type UserIdParam = { id: string };
+export type SuccessGetUserResponse = { data: User };
