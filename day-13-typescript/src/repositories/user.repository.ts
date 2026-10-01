@@ -1,7 +1,4 @@
-import type {
-  User,
-  UserToSave,
-} from "../types/user.types.js";
+import type { User, UserToSave } from "../types/user.types.js";
 
 const users: User[] = [
   {
@@ -31,12 +28,18 @@ const users: User[] = [
   },
 ];
 
-export async function saveUser(
-  user: UserToSave,
-): Promise<User> {
+export async function findUsers(): Promise<User[]> {
+  return users;
+}
+
+export async function findUserById(userId: number): Promise<User | undefined> {
+  const user = users.find((user) => user.id === userId);
+  return user;
+}
+
+export async function saveUser(user: UserToSave): Promise<User> {
   const userIds = users.map((user) => user.id);
-  const currentMaxId =
-    userIds.length > 0 ? Math.max(...userIds) : 0;
+  const currentMaxId = userIds.length > 0 ? Math.max(...userIds) : 0;
 
   const savedUser: User = {
     id: currentMaxId + 1,
