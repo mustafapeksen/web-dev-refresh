@@ -1,8 +1,14 @@
-import { findUserById, saveUser } from "../repositories/user.repository.js";
+import {
+  findUserById,
+  saveUser,
+  patchUser,
+} from "../repositories/user.repository.js";
 
 import type {
   CreateUserRequest,
+  PatchUserRequest,
   User,
+  UserIdParam,
   UserToSave,
 } from "../types/user.types.js";
 
@@ -20,4 +26,11 @@ export async function createUser(input: CreateUserRequest): Promise<User> {
 
 export async function getUserById(id: number): Promise<User | undefined> {
   return findUserById(id);
+}
+
+export async function patchUserFunction(
+  input: PatchUserRequest,
+  id: number,
+): Promise<User | undefined> {
+  return patchUser(input, id);
 }
