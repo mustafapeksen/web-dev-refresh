@@ -1,4 +1,8 @@
-import type { User, UserToSave } from "../types/user.types.js";
+import type {
+  PatchUserRequest,
+  User,
+  UserToSave,
+} from "../types/user.types.js";
 
 const users: User[] = [
   {
@@ -49,4 +53,23 @@ export async function saveUser(user: UserToSave): Promise<User> {
   users.push(savedUser);
 
   return savedUser;
+}
+
+export async function patchUser(
+  currentPatchUser: PatchUserRequest,
+  userId: number,
+): Promise<User | undefined> {
+  const index = users.findIndex((user) => user.id === userId);
+  const currentUser = users[index];
+
+  if (typeof currentUser === "undefined") {
+    return currentUser;
+  }
+
+  const patchedUser: User = {
+    ...currentUser,
+    ...currentPatchUser,
+  };
+  users.splice(index, 1, patchedUser);
+  return patchedUser;
 }
