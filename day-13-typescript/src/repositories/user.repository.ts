@@ -4,7 +4,7 @@ import type {
   UserToSave,
 } from "../types/user.types.js";
 
-const users: User[] = [
+const initialUsers: User[] = [
   {
     id: 1,
     name: "Mustafa",
@@ -32,8 +32,14 @@ const users: User[] = [
   },
 ];
 
-export async function findUsers(): Promise<User[]> {
-  return users;
+export const users: User[] = initialUsers.map((user) => ({ ...user }));
+
+export function resetUsers(): void {
+  users.splice(
+    0,
+    users.length,
+    ...initialUsers.map((user) => ({ ...user })),
+  );
 }
 
 export async function findUserById(userId: number): Promise<User | undefined> {
@@ -85,10 +91,7 @@ export async function deleteUser(userId: number): Promise<User | undefined> {
   return user;
 }
 
-export async function getUsers(): Promise<User[] | undefined> {
-  if (typeof users === "undefined") {
-    return users;
-  }
+export async function getUsers(): Promise<User[]> {
 
-  return users
+  return users;
 }
