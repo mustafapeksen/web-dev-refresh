@@ -73,9 +73,7 @@ export async function patchUser(
   users.splice(index, 1, patchedUser);
   return patchedUser;
 }
-export async function deleteUser(
-  userId: number,
-): Promise<User | undefined> {
+export async function deleteUser(userId: number): Promise<User | undefined> {
   const index = users.findIndex((user) => user.id === userId);
   const user = users[index];
 
@@ -85,4 +83,12 @@ export async function deleteUser(
 
   users.splice(index, 1);
   return user;
+}
+
+export async function getUsers(): Promise<User[] | undefined> {
+  if (typeof users === "undefined") {
+    return users;
+  }
+
+  return users
 }

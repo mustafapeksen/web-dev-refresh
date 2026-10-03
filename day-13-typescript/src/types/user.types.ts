@@ -17,6 +17,9 @@ export type CreateUserRequest = {
   isActive: boolean;
 };
 
+export type UsersResponse = ApiErrorResponse | UsersGetResponse;
+export type UsersGetResponse = { data: User[] };
+
 export type UserToSave = Omit<User, "id">;
 
 export type CreateUserSuccessResponse = {
