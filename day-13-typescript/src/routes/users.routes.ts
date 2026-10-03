@@ -8,6 +8,7 @@ import {
 import {
   createUser,
   deleteUserService,
+  getUsersService,
   patchUserFunction,
 } from "../services/user.service.js";
 
@@ -17,10 +18,31 @@ import type {
   GetUserResponse,
   PatchUserResponse,
   UserIdParam,
+  UsersResponse,
 } from "../types/user.types.js";
 import { getUserById } from "../services/user.service.js";
 
 const usersRouter = Router();
+
+usersRouter.get(
+  "/",
+  async (
+    req: Request<unknown, UsersResponse, unknown>,
+    res: Response<UsersResponse>,
+  ) => {
+    try {
+      const users = await getUsersService();
+      if (typeof users === "undefined") {
+        return res.status(404).json({ message: "Users not found" });
+      }
+      return res.status(200).json({ data: users });
+    } catch (error) {
+      return res.status(500).json({
+        message: "Something went wrong",
+      });
+    }
+  },
+);
 
 usersRouter.get(
   "/:id",

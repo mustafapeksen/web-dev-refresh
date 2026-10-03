@@ -3,6 +3,7 @@ import {
   saveUser,
   patchUser,
   deleteUser,
+  getUsers,
 } from "../repositories/user.repository.js";
 
 import type {
@@ -35,6 +36,11 @@ export async function patchUserFunction(
 ): Promise<User | undefined> {
   return patchUser(input, id);
 }
+
 export async function deleteUserService(id: number): Promise<User | undefined> {
   return deleteUser(id);
+}
+
+export async function getUsersService(): Promise<User[] | undefined> {
+  return getUsers();
 }
