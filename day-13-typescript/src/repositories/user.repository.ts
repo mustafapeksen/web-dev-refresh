@@ -73,3 +73,16 @@ export async function patchUser(
   users.splice(index, 1, patchedUser);
   return patchedUser;
 }
+export async function deleteUser(
+  userId: number,
+): Promise<User | undefined> {
+  const index = users.findIndex((user) => user.id === userId);
+  const user = users[index];
+
+  if (typeof user === "undefined") {
+    return user;
+  }
+
+  users.splice(index, 1);
+  return user;
+}

@@ -35,9 +35,10 @@ export type UserIdParam = { id: string };
 
 export type SuccessGetUserResponse = { data: User };
 
-
 export type PatchUserSuccessResponse = { data: User };
 
 export type PatchUserResponse = PatchUserSuccessResponse | ApiErrorResponse;
 
 export type PatchUserRequest = Partial<Omit<User, "id" | "role" | "phone">>;
+
+export type DeleteUserResponse = ApiErrorResponse;

@@ -5,10 +5,15 @@ import {
   validatePatchUserRequest,
   validateUserId,
 } from "../validators/user.validator.js";
-import { createUser, patchUserFunction } from "../services/user.service.js";
+import {
+  createUser,
+  deleteUserService,
+  patchUserFunction,
+} from "../services/user.service.js";
 
 import type {
   CreateUserResponse,
+  DeleteUserResponse,
   GetUserResponse,
   PatchUserResponse,
   UserIdParam,
@@ -97,6 +102,34 @@ usersRouter.patch(
         return res.status(404).json({ message: "User not found" });
       }
       return res.status(200).json({ data: updatedUser });
+    } catch (error) {
+      return res.status(500).json({
+        message: "Something went wrong",
+      });
+    }
+  },
+);
+
+usersRouter.delete(
+  "/:id",
+  async (
+    req: Request<UserIdParam, DeleteUserResponse, unknown>,
+    res: Response<DeleteUserResponse>,
+  ) => {
+    const idResult = validateUserId(req.params.id);
+
+    if (!idResult.valid) {
+      return res.status(400).json({ message: idResult.message });
+    }
+
+    try {
+      const deletedUser = await deleteUserService(idResult.data);
+
+      if (deletedUser === undefined) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      return res.status(204).send();
     } catch (error) {
       return res.status(500).json({
         message: "Something went wrong",
