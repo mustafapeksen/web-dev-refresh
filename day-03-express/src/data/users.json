@@ -1,44 +1,44 @@
 [
   {
     "id": 1,
-    "name": "Mustafa",
+    "name": "Emre Kaya",
     "age": 28,
-    "email": "user1@example.com",
+    "email": "emre.kaya@example.com",
     "isActive": true
   },
   {
     "id": 2,
-    "name": "Abdullah",
-    "age": 19,
-    "email": "user2@example.com",
+    "name": "Zeynep Demir",
+    "age": 22,
+    "email": "zeynep.demir@example.com",
     "isActive": true
   },
   {
     "id": 3,
-    "name": "Mehmet Burak",
-    "age": 26,
-    "email": "user3@example.com",
+    "name": "Mert Aydın",
+    "age": 34,
+    "email": "mert.aydin@example.com",
     "isActive": false
   },
   {
     "id": 4,
-    "name": "Ali",
-    "age": 55,
-    "email": "user4@example.com",
-    "isActive": true
+    "name": "Elif Yılmaz",
+    "age": 41,
+    "email": "elif.yilmaz@example.com",
+    "isActive": false
   },
   {
     "id": 5,
-    "name": "Şerife",
-    "age": 55,
-    "email": "user5@example.com",
+    "name": "Can Özkan",
+    "age": 26,
+    "email": "can.ozkan@example.com",
     "isActive": false
   },
   {
-    "id": 6,
-    "name": "Cemile",
-    "age": 27,
-    "email": "cemile@example.com",
-    "isActive": false
+    "id": 7,
+    "name": "Kadriye",
+    "age": 22,
+    "email": "kadriye@example.com",
+    "isActive": true
   }
 ]

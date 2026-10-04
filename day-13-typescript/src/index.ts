@@ -27,29 +27,27 @@ type ValidationFailure = {
 
 type ValidationResult = ValidationSuccess | ValidationFailure;
 
-
 const firstUser: User = {
   id: 1,
-  name: "Mustafa",
-  age: 28,
-  email: "user1@example.com",
-  phone: "0531...",
+  name: "Ahmet Koç",
+  age: 24,
+  email: "ahmet.koc@example.com",
   isActive: true,
   role: "user",
 };
 const secondUser: User = {
   id: 2,
-  name: "Abdullah",
-  age: 19,
-  email: "user2@example.com",
+  name: "Ece Şahin",
+  age: 29,
+  email: "ece.sahin@example.com",
   isActive: true,
   role: "user",
 };
 const thirdUser: User = {
   id: 3,
-  name: "Mehmet Burak",
-  age: 26,
-  email: "user3@example.com",
+  name: "Kerem Tunç",
+  age: 37,
+  email: "kerem.tunc@example.com",
   isActive: false,
   role: "user",
 };

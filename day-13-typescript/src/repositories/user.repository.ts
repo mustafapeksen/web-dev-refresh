@@ -7,26 +7,26 @@ import type {
 const initialUsers: User[] = [
   {
     id: 1,
-    name: "Mustafa",
+    name: "Emre Kaya",
     age: 28,
-    email: "user1@example.com",
-    phone: "0531...",
+    email: "emre.kaya@example.com",
+    phone: "000-000-0000",
     isActive: true,
     role: "user",
   },
   {
     id: 2,
-    name: "Abdullah",
+    name: "Zeynep Demir",
     age: 19,
-    email: "user2@example.com",
+    email: "zeynep.demir@example.com",
     isActive: true,
     role: "user",
   },
   {
     id: 3,
-    name: "Mehmet Burak",
+    name: "Mert Aydın",
     age: 26,
-    email: "user3@example.com",
+    email: "mert.aydin@example.com",
     isActive: false,
     role: "user",
   },
@@ -35,11 +35,7 @@ const initialUsers: User[] = [
 export const users: User[] = initialUsers.map((user) => ({ ...user }));
 
 export function resetUsers(): void {
-  users.splice(
-    0,
-    users.length,
-    ...initialUsers.map((user) => ({ ...user })),
-  );
+  users.splice(0, users.length, ...initialUsers.map((user) => ({ ...user })));
 }
 
 export async function findUserById(userId: number): Promise<User | undefined> {
@@ -92,6 +88,5 @@ export async function deleteUser(userId: number): Promise<User | undefined> {
 }
 
 export async function getUsers(): Promise<User[]> {
-
   return users;
 }

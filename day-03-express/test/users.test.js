@@ -3,7 +3,9 @@ import assert from "node:assert/strict";
 import request from "supertest";
 import { copyFile, rm } from "node:fs/promises";
 
-import app from "../src/app.js";
+process.env.NODE_ENV = "test";
+
+const { default: app } = await import("../src/app.js");
 
 const usersTestFile = new URL("../src/data/users.test.json", import.meta.url);
 
