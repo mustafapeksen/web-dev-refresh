@@ -1,15 +1,12 @@
 {
   "name": "day-13-typescript",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
+  "type": "module",
   "scripts": {
     "test": "node --import tsx --test"
   },
-  "keywords": [],
-  "author": "",
   "license": "MIT",
-  "type": "module",
   "devDependencies": {
     "@types/express": "^5.0.6",
     "@types/node": "^26.6.3",
