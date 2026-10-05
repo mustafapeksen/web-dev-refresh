@@ -1,92 +1,91 @@
+import { pool } from "../database/pool.js";
 import type {
   PatchUserRequest,
   User,
   UserToSave,
 } from "../types/user.types.js";
 
-const initialUsers: User[] = [
-  {
-    id: 1,
-    name: "Emre Kaya",
-    age: 28,
-    email: "emre.kaya@example.com",
-    phone: "000-000-0000",
-    isActive: true,
-    role: "user",
-  },
-  {
-    id: 2,
-    name: "Zeynep Demir",
-    age: 19,
-    email: "zeynep.demir@example.com",
-    isActive: true,
-    role: "user",
-  },
-  {
-    id: 3,
-    name: "Mert Aydın",
-    age: 26,
-    email: "mert.aydin@example.com",
-    isActive: false,
-    role: "user",
-  },
-];
-
-export const users: User[] = initialUsers.map((user) => ({ ...user }));
-
-export function resetUsers(): void {
-  users.splice(0, users.length, ...initialUsers.map((user) => ({ ...user })));
-}
-
 export async function findUserById(userId: number): Promise<User | undefined> {
-  const user = users.find((user) => user.id === userId);
-  return user;
+  const user = await pool.query<User>(
+    `SELECT  id, name, age, email, phone, is_active AS "isActive", role FROM users WHERE id = $1`,
+    [userId],
+  );
+  return user.rows[0];
 }
 
 export async function saveUser(user: UserToSave): Promise<User> {
-  const userIds = users.map((user) => user.id);
-  const currentMaxId = userIds.length > 0 ? Math.max(...userIds) : 0;
+  const result = await pool.query<User>(
+    `INSERT INTO users (name,age,email,phone,is_active,role)
+VALUES ($1,$2,$3,$4,$5,$6)
+RETURNING id, name, age, email, phone, is_active AS "isActive", role`,
+    [
+      user.name,
+      user.age,
+      user.email,
+      user.phone ?? null,
+      user.isActive,
+      user.role,
+    ],
+  );
 
-  const savedUser: User = {
-    id: currentMaxId + 1,
-    ...user,
-  };
+  const createdUser = result.rows[0];
 
-  users.push(savedUser);
+  if (!createdUser) {
+    throw new Error("User could not be created.");
+  }
 
-  return savedUser;
+  return createdUser;
 }
 
 export async function patchUser(
   currentPatchUser: PatchUserRequest,
   userId: number,
 ): Promise<User | undefined> {
-  const index = users.findIndex((user) => user.id === userId);
-  const currentUser = users[index];
+  const columnMap = {
+    name: "name",
+    age: "age",
+    email: "email",
+    isActive: "is_active",
+  } as const;
+  const entries = Object.entries(currentPatchUser).filter(
+    ([key, value]) => key in columnMap && value !== undefined,
+  );
 
-  if (typeof currentUser === "undefined") {
-    return currentUser;
+  if (entries.length === 0) {
+    const existing = await pool.query<User>(
+      'SELECT  id, name, age, email, phone, is_active AS "isActive", role FROM users WHERE id = $1',
+      [userId],
+    );
+    return existing.rows[0];
   }
 
-  const patchedUser: User = {
-    ...currentUser,
-    ...currentPatchUser,
-  };
-  users.splice(index, 1, patchedUser);
-  return patchedUser;
+  const setClause = entries
+    .map(
+      ([key], i) => `${columnMap[key as keyof typeof columnMap]} = $${i + 1}`,
+    )
+    .join(", ");
+  const values = entries.map(([, value]) => value);
+
+  const result = await pool.query<User>(
+    `UPDATE users SET ${setClause} WHERE id = $${entries.length + 1} RETURNING id, name, age, email, phone, is_active AS "isActive", role`,
+    [...values, userId],
+  );
+
+  return result.rows[0];
 }
 export async function deleteUser(userId: number): Promise<User | undefined> {
-  const index = users.findIndex((user) => user.id === userId);
-  const user = users[index];
-
-  if (typeof user === "undefined") {
-    return user;
-  }
-
-  users.splice(index, 1);
-  return user;
+  const deleteRequest = await pool.query<User>(
+    `DELETE FROM users
+WHERE id = $1
+RETURNING id, name, age, email, phone, is_active AS "isActive", role`,
+    [userId],
+  );
+  return deleteRequest.rows[0];
 }
 
 export async function getUsers(): Promise<User[]> {
-  return users;
+  const users = await pool.query<User>(
+    `SELECT  id, name, age, email, phone, is_active AS "isActive", role FROM users`,
+  );
+  return users.rows;
 }

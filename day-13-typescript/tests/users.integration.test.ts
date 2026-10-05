@@ -1,12 +1,16 @@
-import test, { beforeEach } from "node:test";
+import test, { after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import request from "supertest";
-import { resetUsers } from "../src/repositories/user.repository.js";
 
 import { app } from "../src/app.js";
+import { resetTestDatabase, closeTestDatabase } from "./helpers/database.js";
 
-beforeEach(() => {
-  resetUsers();
+beforeEach(async () => {
+  await resetTestDatabase();
+});
+
+after(async () => {
+  await closeTestDatabase();
 });
 
 test("GET /users returns users", async () => {
