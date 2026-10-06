@@ -139,3 +139,21 @@ test("DELETE /users/:id removes the user from the repository", async () => {
   assert.equal(deleteResponse.status, 204);
   assert.equal(getResponse.status, 404);
 });
+
+test("POST /users returns 409 when email already exists", async () => {
+  const newUser = {
+    name: "Duplicate Test",
+    age: 25,
+    email: "duplicate@example.com",
+    isActive: true,
+  };
+
+  const firstCreateRequest = await request(app).post("/users").send(newUser);
+  const secondCreateRequest = await request(app).post("/users").send(newUser);
+
+  assert.equal(firstCreateRequest.status, 201);
+  assert.equal(secondCreateRequest.status, 409);
+  assert.deepEqual(secondCreateRequest.body, {
+    message: "Email already exists",
+  });
+});

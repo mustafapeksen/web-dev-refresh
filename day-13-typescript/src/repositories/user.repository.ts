@@ -1,4 +1,5 @@
 import { pool } from "../database/pool.js";
+import { DuplicateEmailError } from "../errors/user.errors.js";
 import type {
   PatchUserRequest,
   User,
@@ -14,27 +15,40 @@ export async function findUserById(userId: number): Promise<User | undefined> {
 }
 
 export async function saveUser(user: UserToSave): Promise<User> {
-  const result = await pool.query<User>(
-    `INSERT INTO users (name,age,email,phone,is_active,role)
+  try {
+    const result = await pool.query<User>(
+      `INSERT INTO users (name,age,email,phone,is_active,role)
 VALUES ($1,$2,$3,$4,$5,$6)
 RETURNING id, name, age, email, phone, is_active AS "isActive", role`,
-    [
-      user.name,
-      user.age,
-      user.email,
-      user.phone ?? null,
-      user.isActive,
-      user.role,
-    ],
-  );
+      [
+        user.name,
+        user.age,
+        user.email,
+        user.phone ?? null,
+        user.isActive,
+        user.role,
+      ],
+    );
 
-  const createdUser = result.rows[0];
+    const createdUser = result.rows[0];
+    if (!createdUser) {
+      throw new Error("User could not be created.");
+    }
 
-  if (!createdUser) {
-    throw new Error("User could not be created.");
+    return createdUser;
+  } catch (error: unknown) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      "constraint" in error &&
+      error.code === "23505" &&
+      error.constraint === "users_email_key"
+    ) {
+      throw new DuplicateEmailError();
+    }
+    throw error;
   }
-
-  return createdUser;
 }
 
 export async function patchUser(

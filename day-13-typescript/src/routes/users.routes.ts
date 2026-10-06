@@ -21,6 +21,7 @@ import type {
   UsersResponse,
 } from "../types/user.types.js";
 import { getUserById } from "../services/user.service.js";
+import { DuplicateEmailError } from "../errors/user.errors.js";
 
 const usersRouter = Router();
 
@@ -30,17 +31,11 @@ usersRouter.get(
     req: Request<unknown, UsersResponse, unknown>,
     res: Response<UsersResponse>,
   ) => {
-    try {
-      const users = await getUsersService();
-      if (typeof users === "undefined") {
-        return res.status(404).json({ message: "Users not found" });
-      }
-      return res.status(200).json({ data: users });
-    } catch (error) {
-      return res.status(500).json({
-        message: "Something went wrong",
-      });
+    const users = await getUsersService();
+    if (typeof users === "undefined") {
+      return res.status(404).json({ message: "Users not found" });
     }
+    return res.status(200).json({ data: users });
   },
 );
 
@@ -56,17 +51,11 @@ usersRouter.get(
       return res.status(400).json({ message: idResult.message });
     }
 
-    try {
-      const user = await getUserById(idResult.data);
-      if (user === undefined)
-        return res.status(404).json({ message: "User not found" });
+    const user = await getUserById(idResult.data);
+    if (user === undefined)
+      return res.status(404).json({ message: "User not found" });
 
-      return res.status(200).json({ data: user });
-    } catch (error) {
-      res.status(500).json({
-        message: "Something went wrong",
-      });
-    }
+    return res.status(200).json({ data: user });
   },
 );
 
@@ -84,17 +73,11 @@ usersRouter.post(
       });
     }
 
-    try {
-      const newUser = await createUser(validation.data);
+    const newUser = await createUser(validation.data);
 
-      return res.status(201).json({
-        data: newUser,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        message: "Something went wrong",
-      });
-    }
+    return res.status(201).json({
+      data: newUser,
+    });
   },
 );
 
@@ -118,17 +101,12 @@ usersRouter.patch(
       return res.status(400).json({ message: idResult.message });
     }
     const id = idResult.data;
-    try {
-      const updatedUser = await patchUserFunction(patchUser, id);
-      if (typeof updatedUser === "undefined") {
-        return res.status(404).json({ message: "User not found" });
-      }
-      return res.status(200).json({ data: updatedUser });
-    } catch (error) {
-      return res.status(500).json({
-        message: "Something went wrong",
-      });
+
+    const updatedUser = await patchUserFunction(patchUser, id);
+    if (typeof updatedUser === "undefined") {
+      return res.status(404).json({ message: "User not found" });
     }
+    return res.status(200).json({ data: updatedUser });
   },
 );
 
@@ -144,19 +122,13 @@ usersRouter.delete(
       return res.status(400).json({ message: idResult.message });
     }
 
-    try {
-      const deletedUser = await deleteUserService(idResult.data);
+    const deletedUser = await deleteUserService(idResult.data);
 
-      if (deletedUser === undefined) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      return res.status(204).send();
-    } catch (error) {
-      return res.status(500).json({
-        message: "Something went wrong",
-      });
+    if (deletedUser === undefined) {
+      return res.status(404).json({ message: "User not found" });
     }
+
+    return res.status(204).send();
   },
 );
 
